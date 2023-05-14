@@ -5,8 +5,9 @@ import ht.henrique.mazebank.model.BaseResponse;
 import ht.henrique.mazebank.model.authenticate.AuthenticateRequest;
 import ht.henrique.mazebank.model.authenticate.AuthenticateResponse;
 import ht.henrique.mazebank.model.database.User;
-import ht.henrique.mazebank.model.reposiory.UserRepository;
+
 import ht.henrique.mazebank.service.AuthenticateService;
+import ht.henrique.mazebank.util.type.ReturnCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,8 +20,6 @@ import java.util.List;
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticateService {
 
-    @Autowired
-    private UserRepository userRepository;
 
     @Override
     public ResponseEntity<BaseResponse> authenticate(AuthenticateRequest authenticateRequest) throws DatabaseException {
@@ -29,7 +28,7 @@ public class AuthenticationServiceImpl implements AuthenticateService {
 
         try {
             log.info("Searching for user with key: " + authenticateRequest.getUsername());
-            listUser = userRepository.findByUserEmail(authenticateRequest.getUsername());
+            listUser = null; //userRepository.findByUserEmail(authenticateRequest.getUsername());
 
             if (listUser.size() == 1){
                 user = listUser.get(0);
@@ -37,17 +36,17 @@ public class AuthenticationServiceImpl implements AuthenticateService {
 
         }catch (Exception e){
             log.info("Database unavailable");
-            throw new DatabaseException(HttpStatus.INTERNAL_SERVER_ERROR, 500000, "Database unavailable");
+            throw new DatabaseException(ReturnCode.INTERNAL_SERVER_ERROR, "Database unavailable");
         }
 
         if (user == null){
             log.info("User with key: " + authenticateRequest.getUsername() + " not found");
-            throw new DatabaseException(HttpStatus.NOT_FOUND, 404000, "User not found");
+            throw new DatabaseException(ReturnCode.NOT_FOUND, "User not found");
         }
 
         if (!authenticateRequest.getUserpass().equals(user.getUser_pass())){
             log.info("Invalid credentials");
-            throw new DatabaseException(HttpStatus.BAD_REQUEST, 400000, "Invalid credentials");
+            throw new DatabaseException(ReturnCode.INVALID_CREDENTIALS, "Invalid credentials");
         }
 
         log.info("Logged with success");

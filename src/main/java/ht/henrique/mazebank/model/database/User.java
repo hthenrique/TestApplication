@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -17,14 +18,14 @@ public class User implements Projection{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "uid")
-    private Integer uid;
-    @Column(name = "user_name")
+    @Column(name = "_id")
+    private ObjectId uid;
+    @Column(name = "_userName")
     private String user_name;
-    @Column(name = "user_pass")
+    @Column(name = "_userPass")
     private String user_pass;
-    @Column(name = "user_balance")
+    @Column(name = "_balance")
     private BigDecimal user_balance;
-    @Column(name = "user_email")
+    @Column(name = "_userEmail")
     private String user_email;
 }

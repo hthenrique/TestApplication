@@ -9,4 +9,6 @@ public interface ManagementService {
 
     ResponseEntity<BaseResponse> createUser(CreateRequest createRequest) throws DatabaseException;
     ResponseEntity<BaseResponse> getUser(String userKey) throws DatabaseException;
+
+    ResponseEntity<BaseResponse> getUserMongo(String userId);
 }

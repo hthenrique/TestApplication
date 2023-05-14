@@ -1,18 +1,11 @@
 package ht.henrique.mazebank.exception;
 
-import lombok.Getter;
+import ht.henrique.mazebank.util.type.ReturnCode;
 import org.springframework.http.HttpStatus;
 
-@Getter
-public class DatabaseException extends Exception{
+public class DatabaseException extends BaseException{
 
-    private HttpStatus httpStatus;
-    private String message;
-    private Integer errorCode;
-
-    public DatabaseException(HttpStatus httpStatus, Integer errorCode, String message){
-        this.httpStatus = httpStatus;
-        this.message = message;
-        this.errorCode = errorCode;
+    public DatabaseException(ReturnCode returnCode, String message){
+        super(returnCode, message);
     }
 }

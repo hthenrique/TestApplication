@@ -7,8 +7,9 @@ import ht.henrique.mazebank.model.create.CreateResponse;
 import ht.henrique.mazebank.model.database.User;
 import ht.henrique.mazebank.model.fetch.FetchUserResponse;
 import ht.henrique.mazebank.model.mapper.UserMapper;
-import ht.henrique.mazebank.model.reposiory.UserRepository;
 import ht.henrique.mazebank.service.ManagementService;
+import ht.henrique.mazebank.service.MongoDbService;
+import ht.henrique.mazebank.util.type.ReturnCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,29 +22,29 @@ import java.util.List;
 @Service
 @Slf4j
 public class ManagementServiceImpl implements ManagementService {
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private MongoDbService mongoDbService;
 
     @Override
     public ResponseEntity<BaseResponse> createUser(CreateRequest createRequest) throws DatabaseException {
 
         if (findUserByKey(createRequest.getUseremail()) != null){
             log.info("User already used with key");
-            throw new DatabaseException(HttpStatus.CONFLICT, 409000, "User already used");
+            throw new DatabaseException(ReturnCode.ALREADY_USER, "User already used");
         }
 
         User user = userMapper.createToUser(createRequest);
 
         try {
-            userRepository.save(user);
         }catch (DataIntegrityViolationException exception){
             log.info("Required field not informed");
-            throw new DatabaseException(HttpStatus.BAD_REQUEST, 400009, "Required field not informed");
+            throw new DatabaseException(ReturnCode.INVALID_PARAMETERS, "Required field not informed");
         }catch (Exception exception){
-            throw new DatabaseException(HttpStatus.INTERNAL_SERVER_ERROR, 500000, "Database unavailable");
+            throw new DatabaseException(ReturnCode.INTERNAL_SERVER_ERROR, "Database unavailable");
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse(201000, new CreateResponse("Success")));
@@ -56,7 +57,7 @@ public class ManagementServiceImpl implements ManagementService {
 
         if (user == null){
             log.info("User not found");
-            throw new DatabaseException(HttpStatus.CONFLICT, 404000, "User not found");
+            throw new DatabaseException(ReturnCode.NOT_FOUND, "User not found");
         }
 
         FetchUserResponse fetchUser = userMapper.userToFetchUser(user);
@@ -64,18 +65,27 @@ public class ManagementServiceImpl implements ManagementService {
         return ResponseEntity.ok(new BaseResponse(200000, fetchUser));
     }
 
+    @Override
+    public ResponseEntity<BaseResponse> getUserMongo(String userId) {
+        User result = mongoDbService.getUserInDatabase(userId);
+        log.info(result.toString());
+        FetchUserResponse fetchUser = new FetchUserResponse();
+        fetchUser.setUserName(result.getUser_name());
+        return ResponseEntity.ok(new BaseResponse(ReturnCode.SUCCESS.getReturnCode(), fetchUser));
+    }
+
     private User findUserByKey(String userKey) throws DatabaseException {
         List<User> listUser;
         User user = null;
 
         log.info("Searching for user with key: " + userKey);
-        listUser = userRepository.findByUserEmail(userKey);
+        listUser = null;
 
         if (listUser.size() == 1){
             user = listUser.get(0);
         }else {
             if (listUser.size() > 1){
-                throw new DatabaseException(HttpStatus.UNPROCESSABLE_ENTITY, 420000, "More than one user");
+                throw new DatabaseException(ReturnCode.MORE_THAN_ONE_USER, "More than one user");
             }
         }
         return user;
