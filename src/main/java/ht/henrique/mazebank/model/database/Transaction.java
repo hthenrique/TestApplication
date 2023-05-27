@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "transactions")
-@Table(name = "transactions")
+@Entity(name = "TransactionsTable")
+@Table(name = "TransactionsTable")
 public class Transaction implements Projection {
 
     @Id
